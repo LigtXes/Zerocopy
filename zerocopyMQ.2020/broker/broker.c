@@ -75,12 +75,13 @@ int main(int argc, char *argv[]){
 		}
         while ((leido=read(s_conec, buf, TAM))>0) {
 			
-			dic = dic_create();
+			printf("%c", *(char *)buf[0]);
+			//dic = dic_create();
 
 			//Message format: 
 			// FunctionCode + ColaChar + Message
-            queue = cola_create();
-            cola_push_back(queue, buf);
+            //queue = cola_create();
+            //cola_push_back(queue, buf);
 
 			/*if (write(s_conec, buf, leido)<0) {
 				perror("error en write");

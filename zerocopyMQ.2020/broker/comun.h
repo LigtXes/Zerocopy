@@ -12,6 +12,6 @@ int destroyQueue(void *buf[], char *cola);
 
 int putQueue(void *buf[], char *cola, void *message);
 
-int getQueue(void *buf[], char *cola);
+int getQueue(void *buf[], char *cola, void *message);
 
 #endif 
