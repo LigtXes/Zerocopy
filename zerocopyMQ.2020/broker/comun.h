@@ -6,12 +6,12 @@
 #ifndef COMUN_H
 #define COMUN_H  1
 
-int createQueue(void *buf[], char *cola);
+int createQueue(char *buf, const char *cola);
 
-int destroyQueue(void *buf[], char *cola);
+int destroyQueue(char *buf, const char *cola);
 
-int putQueue(void *buf[], char *cola, void *message);
+int putQueue(char *buf, const char *cola, char *message);
 
-int getQueue(void *buf[], char *cola, void *message);
+int getQueue(char *buf, const char *cola, char *message);
 
 #endif 

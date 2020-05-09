@@ -68,14 +68,14 @@ int main(int argc, char *argv[]){
 			close(s);
 			return 1;
 		}
-        if ((s_conec=accept(s, (struct sockaddr *)&dir_cliente, &tam_dir))<0){
-			perror("error en accept");
-			close(s);
-			return 1;
-		}
+
         while ((leido=read(s_conec, buf, TAM))>0) {
 			
-			printf("%c", *(char *)buf[0]);
+			printf("%c \n", buf[0]);
+			printf("%s \n", buf);
+			send(s, "0/0", 4*sizeof(char), 0);
+		//	printf("%c\n", *(char *)buf[0]);
+
 			//dic = dic_create();
 
 			//Message format: 

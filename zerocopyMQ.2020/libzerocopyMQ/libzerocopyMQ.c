@@ -1,4 +1,8 @@
 #include <stdint.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
@@ -9,42 +13,53 @@
 
 int createMQ(const char *cola) {
     int s = socketConnection();
-    void* buf[4];
+
+    char* buf;
+    buf = (char *)malloc(strlen(cola+2*sizeof(char)));
 
     createQueue(buf, cola);
+
     send(s, buf, strlen(buf), 0);
-    
-    read(s, buf, 4*sizeof(void));
-    cola = buf[1];
-    return atoi(cola);
+
+    char response[4];
+    read(s, response, 4*sizeof(char));
+    return atoi(&response[0]);
 }
 int destroyMQ(const char *cola){
-    int s = socketConnection();
-    void* buf[4];
+  /*  int s = socketConnection();
+    char* buf;
+        buf = NULL;
+
     destroyQueue(buf, cola);
     send(s, buf, strlen(buf), 0);
     write(s, buf, 4*sizeof(void));
     cola = buf[1];
-    return atoi(cola);
+    return atoi(cola); */
+    return 1;
 }
 
 int put(const char *cola, const void *mensaje, uint32_t tam) {
-    int s = socketConnection();
-    void* buf[5];
+   /* int s = socketConnection();
+    char* buf;
+    buf = NULL;
     putQueue(buf, cola, mensaje);
     send(s, buf, strlen(buf), 0);
     write(s, buf, 5*sizeof(void));
     cola = buf[1];
-    return atoi(cola);
+    return atoi(cola);*/
+    return 1;
 }
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
-    int s = socketConnection();
-    void* buf[5];
+  /*  int s = socketConnection();
+    char* buf;
+    buf = NULL;
+
     getQueue(buf, cola, mensaje);
     send(s, buf, strlen(buf), 0);
     write(s, buf, 5*sizeof(void));
     cola = buf[1];
-    return atoi(cola);
+    return atoi(cola);*/
+    return 1;
 }
 
 int socketConnection(){
@@ -57,9 +72,9 @@ int socketConnection(){
 		return 1;
 	}
 
+
     host_info=gethostbyname(getenv("BROKER_HOST"));
 
-    return 1;
 
     dir.sin_addr=*(struct in_addr *)host_info->h_addr;
 	dir.sin_port=htons(atoi(getenv("BROKER_PORT")));
