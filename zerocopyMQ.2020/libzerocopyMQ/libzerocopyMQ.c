@@ -13,53 +13,73 @@
 
 int createMQ(const char *cola) {
     int s = socketConnection();
-
     char* buf;
     buf = (char *)malloc(strlen(cola+2*sizeof(char)));
-
     createQueue(buf, cola);
+
+
 
     send(s, buf, strlen(buf), 0);
 
     char response[4];
-    read(s, response, 4*sizeof(char));
-    return atoi(&response[0]);
+    read(s, response, 2*sizeof(char));
+    char op = response[0];
+    printf("%c\n", op);
+    if(op = '0'){
+        return -1;
+    }
+    return atoi(&op);
 }
-int destroyMQ(const char *cola){
-  /*  int s = socketConnection();
+    int destroyMQ(const char *cola){
+    int s = socketConnection();
+    
     char* buf;
-        buf = NULL;
+    buf = (char *)malloc(strlen(cola+2*sizeof(char)));
 
     destroyQueue(buf, cola);
+
     send(s, buf, strlen(buf), 0);
-    write(s, buf, 4*sizeof(void));
-    cola = buf[1];
-    return atoi(cola); */
-    return 1;
+
+    char response[4];
+    read(s, response, 2*sizeof(char));
+    char op = response[0];
+    printf("%c\n", op);
+    if(op = '0'){
+        return -1;
+    }
+    return atoi(&op); 
 }
 
 int put(const char *cola, const void *mensaje, uint32_t tam) {
-   /* int s = socketConnection();
+    int s = socketConnection();
+
     char* buf;
-    buf = NULL;
-    putQueue(buf, cola, mensaje);
+    char* msg = (char *)mensaje;
+    buf = (char *)malloc(strlen( msg+3*sizeof(char) ));
+
+    putQueue(buf, cola, msg);
+
     send(s, buf, strlen(buf), 0);
-    write(s, buf, 5*sizeof(void));
-    cola = buf[1];
-    return atoi(cola);*/
-    return 1;
+    free(buf);
+    char response[4];
+    write(s, response, 4*sizeof(char));
+    return atoi(&response[0]);
 }
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
-  /*  int s = socketConnection();
-    char* buf;
-    buf = NULL;
+    int s = socketConnection();
 
-    getQueue(buf, cola, mensaje);
+    char* buf;
+    buf = (char *)malloc(strlen(cola+2*sizeof(char)));;
+
+    getQueue(buf, cola);
+
     send(s, buf, strlen(buf), 0);
-    write(s, buf, 5*sizeof(void));
-    cola = buf[1];
-    return atoi(cola);*/
-    return 1;
+
+    char response[4];
+    write(s, response, 4*sizeof(char));
+    cola = response[0];
+    return atoi(cola);
+
 }
 
 int socketConnection(){

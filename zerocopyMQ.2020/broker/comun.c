@@ -17,6 +17,7 @@ int createQueue(char *buf, const char *cola){
     buf[1] = *cola;
     buf[2] = '\0';
 
+
     return 0;
 }
 
@@ -29,21 +30,27 @@ int destroyQueue(char *buf, const char *cola){
     return 0;
 }
 
-int getQueue(char *buf, const char *cola, char *message){
-    char c = 'G';
+int putQueue(char *buf, const char *cola, char *message){
+    char c = 'P';
     buf[0] = c;
     buf[1] = *cola;
-    buf[2] = *message;
-    buf[3] = '\0';
+    int i;
+     printf("Message: %s\n", buf);
+    for(i = 0; i<strlen(message); i++){
+        buf[2+i] = message[i];
+    }
+    buf[i+3] = '\0';
+    //strcat(buf, '\0');
+
     
+    printf("Message: %s\n", buf);
     return 0;
 }
 
-int putQueue(char *buf, const char *cola, char *message){
-    char c = 'P';
-    buf[0] = &c;
+int getQueue(char *buf, const char *cola){
+    char c = 'G';
+    buf[0] = c;
     buf[1] = *cola;
-    buf[2] = *message;
     buf[3] = '\0';
 
     return 0;

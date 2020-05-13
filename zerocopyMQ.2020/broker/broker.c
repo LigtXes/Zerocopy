@@ -7,6 +7,9 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>	
+#include <pthread.h>
+
 
 
 #define MAGIC (('Q' << 24) + ('U' << 16) + ('E' << 8) + 'U')
@@ -16,25 +19,149 @@ struct cola {
     struct entrada *prim;
     struct entrada *ult;
 };
+struct diccionario* dic;
+
+
 
 #define TAM 1024
 
+void removeDic(char *c, void *v){
+	cola_destroy(v, NULL);
+}
+
+void * servicio(void *arg){
+
+		int s, leido; 
+		char buf[TAM];
+
+		s = (long) arg;
+
+		struct cola *c;
+
+
+
+	while ((leido=read(s, buf, TAM))>0) {
+			
+
+		printf("Taille du buffer: %d\n", strlen(buf));
+
+		char op;
+		char queueName;
+
+		char takeFirst[3];
+
+		strncpy(takeFirst, buf, 2);
+		op = takeFirst[0];
+		queueName = takeFirst[1];
+
+		printf("Option chose: %c \n", op);
+
+		//char* queueName;
+		//strncat(queueName, buf+1, 1);
+
+		printf("Name of the queue: %c\n", queueName);
+		char* message = (char *)malloc(sizeof(char));
+
+		int error;
+		switch (op)
+		{
+		case 'C':
+			dic_get(dic, queueName,&error);
+			if(error < 0){
+				//The dic doesn't exist
+				dic_put(dic, queueName, (void *)cola_create());
+				send(s, "1", 2*sizeof(char), 0);
+			}else{
+				//Dic exist
+				send(s, "0", 2*sizeof(char), 0);
+			}
+			/*if(dic_put(dic, queueName, (void*)cola_create) <0){
+				send(s, "0", 2*sizeof(char), 0);
+			}else{
+				send(s, "1", 2*sizeof(char), 0);
+			}*/
+			break;
+		case 'D':
+			dic_get(dic, queueName, &error);
+			
+			if(error == -1){
+				//The dic doesn't exist
+				send(s, "0", 2*sizeof(char), 0);
+			}else{
+				printf("Try to remove dic\n");
+				dic_remove_entry(dic, queueName, removeDic);
+				send(s, "1", 2*sizeof(char), 0);
+			}
+			break;
+		case 'G':
+			c = dic_get(dic, queueName, &error);
+			if(error == -1){
+				//Doesn't exist
+				send(s, "0", 2*sizeof(char), 0);
+			}else{
+				//@TODO
+				message = cola_pop_front(c, &error);
+				if(error == -1){
+					//Nothing to popUP
+					send(s, "0", 2*sizeof(char), 0);
+				}else{
+					send(s, '0'+message, sizeof(message) + 2*sizeof(char), 0);
+				}
+			}
+			strncpy(message, &buf[2], strlen(buf)-1);
+			printf("%s\n", message);
+			break;
+		case 'P':
+			c = dic_get(dic, queueName, &error);
+			
+			
+			if(error == -1){
+				//doesn't exist
+				send(s, "0", 2*sizeof(char), 0);
+			}else{
+				strncpy(message, &buf[2], strlen(buf)-1);
+				printf("%s\n", message);
+
+				cola_push_back(c, message);
+
+				dic_remove_entry(dic, queueName, NULL);
+				dic_put(dic, queueName, c);
+
+				send(s, "1", sizeof(char)*2, 0);
+			}
+			
+			break;
+		default:
+			break;
+		}
+		free(message);		
+	}
+	close(s);
+	return NULL;
+}
+
 int main(int argc, char *argv[]){
 
-    int s, s_conec, leido; 
+	int s, s_conec;
     unsigned int tam_dir;
    	int opcion=1;
-    char buf[TAM];
 	struct sockaddr_in dir, dir_cliente;
     struct cola* queue;
 
-	struct diccionario* dic;
+
+	pthread_t thid;
+	pthread_attr_t atrib_th;
 
     if(argc!=2) {
         fprintf(stderr, "Uso: %s puerto\n", argv[0]);
         return 1;
     }
 
+	dic = dic_create();
+
+	pthread_attr_init(&atrib_th);
+	pthread_attr_setdetachstate(&atrib_th, PTHREAD_CREATE_DETACHED);
+	
 
     if ((s=socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
 		perror("error creando socket");
@@ -67,29 +194,19 @@ int main(int argc, char *argv[]){
 			perror("error en accept");
 			close(s);
 			return 1;
+		}/* if(fork() == 0){
+			close(s);
+			servicio(s_conec);
+			exit(0);
 		}
-
-        while ((leido=read(s_conec, buf, TAM))>0) {
-			
-			printf("%c \n", buf[0]);
-			printf("%s \n", buf);
-			send(s, "0/0", 4*sizeof(char), 0);
-		//	printf("%c\n", *(char *)buf[0]);
-
-			//dic = dic_create();
-
-			//Message format: 
-			// FunctionCode + ColaChar + Message
-            //queue = cola_create();
-            //cola_push_back(queue, buf);
-
-			/*if (write(s_conec, buf, leido)<0) {
-				perror("error en write");
-				close(s);
-				close(s_conec);
-				return 1;
-			}*/
-		}
+		close(s_conec);
+*/
+		pthread_create(&thid,
+			&atrib_th,
+			servicio, 
+			(void *)(long)s_conec
+		);
+	
 
     }
 
