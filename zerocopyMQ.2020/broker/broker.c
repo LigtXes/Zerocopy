@@ -22,6 +22,11 @@ struct cola {
 struct diccionario* dic;
 
 
+struct thread{
+	long s;
+	struct diccionario * d;
+};
+
 
 #define TAM 1024
 
@@ -33,8 +38,9 @@ void * servicio(void *arg){
 
 		int s, leido; 
 		char buf[TAM];
-
-		s = (long) arg;
+		struct thread *t;
+		t=(struct thread *)arg;
+		s = (int)t->s;
 
 		struct cola *c;
 
@@ -147,6 +153,8 @@ int main(int argc, char *argv[]){
    	int opcion=1;
 	struct sockaddr_in dir, dir_cliente;
     struct cola* queue;
+	struct thread *t;
+	t = (struct thread *)malloc(sizeof(struct thread ));
 
 
 	pthread_t thid;
@@ -157,7 +165,7 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-	dic = dic_create();
+	t->d = dic_create();
 
 	pthread_attr_init(&atrib_th);
 	pthread_attr_setdetachstate(&atrib_th, PTHREAD_CREATE_DETACHED);
@@ -190,7 +198,7 @@ int main(int argc, char *argv[]){
 //Broker is listening
     while(1){
         tam_dir=sizeof(dir_cliente);
-		if ((s_conec=accept(s, (struct sockaddr *)&dir_cliente, &tam_dir))<0){
+		if ((t->s=accept(s, (struct sockaddr *)&dir_cliente, &tam_dir))<0){
 			perror("error en accept");
 			close(s);
 			return 1;
@@ -204,7 +212,7 @@ int main(int argc, char *argv[]){
 		pthread_create(&thid,
 			&atrib_th,
 			servicio, 
-			(void *)(long)s_conec
+			(void *)(struct thread *)t
 		);
 	
 
