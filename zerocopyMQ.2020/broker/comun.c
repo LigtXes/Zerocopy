@@ -51,7 +51,7 @@ int getQueue(char *buf, const char *cola){
     char c = 'G';
     buf[0] = c;
     buf[1] = *cola;
-    buf[3] = '\0';
+    buf[2] = '\0';
 
     return 0;
 }

@@ -23,14 +23,11 @@ int createMQ(const char *cola) {
 
     char response[4];
     read(s, response, 2*sizeof(char));
-    char op = response[0];
-    printf("%c\n", op);
-    if(op = '0'){
-        return -1;
-    }
-    return atoi(&op);
+    
+    return atoi(&response);
 }
-    int destroyMQ(const char *cola){
+
+int destroyMQ(const char *cola){
     int s = socketConnection();
     
     char* buf;
@@ -40,14 +37,14 @@ int createMQ(const char *cola) {
 
     send(s, buf, strlen(buf), 0);
 
-    char response[4];
+    char response[2];
     read(s, response, 2*sizeof(char));
-    char op = response[0];
-    printf("%c\n", op);
-    if(op = '0'){
+    //char op = response[0];
+    //printf("%c\n", op);
+    /*if(strcmp){
         return -1;
-    }
-    return atoi(&op); 
+    }*/
+    return atoi(&response); 
 }
 
 int put(const char *cola, const void *mensaje, uint32_t tam) {
@@ -58,13 +55,13 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
     buf = (char *)malloc(strlen( msg+3*sizeof(char) ));
 
     putQueue(buf, cola, msg);
-
     send(s, buf, strlen(buf), 0);
     free(buf);
     char response[4];
-    write(s, response, 4*sizeof(char));
-    return atoi(&response[0]);
+    read(s, response, 2*sizeof(char));
+    return atoi(&response);
 }
+
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     int s = socketConnection();
 
@@ -72,13 +69,26 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     buf = (char *)malloc(strlen(cola+2*sizeof(char)));;
 
     getQueue(buf, cola);
+    mensaje = (void **)malloc(sizeof(void *));
 
     send(s, buf, strlen(buf), 0);
 
-    char response[4];
-    write(s, response, 4*sizeof(char));
-    cola = response[0];
-    return atoi(cola);
+    free(buf);
+    char response[TAM];
+    char * resp = (char *)malloc(TAM * sizeof(char));
+
+    read(s, response, TAM);
+    printf("Reçu: %s\n", response);
+    strncpy(resp, &response[2], strlen(response)-2);
+    printf("Reçu 2: %s\n", resp);
+    uint32_t i = (uint32_t)strlen(resp);
+    *tam = i;
+    *mensaje = (char *)malloc(TAM*sizeof(char)); 
+
+    //mensaje = &resp;
+    strcpy(mensaje, resp);
+    strncpy(resp, response, 2);
+    return atoi(resp);
 
 }
 

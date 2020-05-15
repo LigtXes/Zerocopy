@@ -28,12 +28,25 @@ struct thread{
 
 #define TAM 1024
 
-void removeDic(char *c, void *v){
-	cola_destroy(v, NULL);
+
+
+void imprimeQueue(void *v){
+	if(v){
+		printf("Message: %s\n", (char *)v);
+	}
 }
 
-void imprimeQueue(char *c, void *v){
+void imprimeDic(char *c, void *v){
 	printf("Name of the queue in main thread: %c\n", c);
+	cola_visit(v, imprimeQueue);
+}
+
+void deleteQueue(void *v){
+	free(v);
+}
+
+void removeDic(char *c, void *v){
+	cola_destroy(v, deleteQueue);
 }
 
 
@@ -67,13 +80,13 @@ void * servicio(void *arg){
 		//strncat(queueName, buf+1, 1);
 
 		printf("Name of the queue: %c\n", queueName);
-		char* message = (char *)malloc(sizeof(char));
+		char* message = (char *)malloc(sizeof(char *));
 
 		int error;
 		switch (op)
 		{
 		case 'C':
-			dic_visit(ts->dic, imprimeQueue);
+			dic_visit(ts->dic, imprimeDic);
 
 			c = dic_get(ts->dic, queueName, &error);
 
@@ -85,7 +98,7 @@ void * servicio(void *arg){
 			}else{
 				//Dic exist
 				printf("The dic already exist\n");
-				send(s, "0", 2*sizeof(char), 0);
+				send(s, "-1", 2*sizeof(char), 0);
 			}
 			/*if(dic_put(ts->dic, queueName, (void*)cola_create) <0){
 				send(s, "0", 2*sizeof(char), 0);
@@ -94,11 +107,12 @@ void * servicio(void *arg){
 			}*/
 			break;
 		case 'D':
-			dic_get(ts->dic, queueName, &error);
+			c = dic_get(ts->dic, queueName, &error);
 			
 			if(error == -1){
 				//The dic doesn't exist
-				send(s, "0", 2*sizeof(char), 0);
+				printf("The dic doesn't exist");
+				send(s, "-1", 2*sizeof(char), 0);
 			}else{
 				printf("Try to remove dic\n");
 				dic_remove_entry(ts->dic, queueName, removeDic);
@@ -114,14 +128,27 @@ void * servicio(void *arg){
 				//@TODO
 				message = cola_pop_front(c, &error);
 				if(error == -1){
+					printf("Nada por leer \n\n");
 					//Nothing to popUP
-					send(s, "0", 2*sizeof(char), 0);
+					send(s, "-1", 2*sizeof(char), 0);
 				}else{
-					send(s, '0'+message, sizeof(message) + 2*sizeof(char), 0);
+					printf("Se manda la cola\n\n");
+					char* msg = (char *)malloc(strlen(message+3*sizeof(char) ));
+					printf("Message to send %s", message);
+					msg[0] = '1';
+					msg[1] = '0';
+					int i;
+					/*for(i = 0; i<strlen(message); i++){
+						msg[i+2] = message[i];
+					}
+					msg[i+3] = '\0';*/
+					strcat(msg, message);
+					printf("Send: %s\n", msg);
+					send(s, msg, strlen(msg), 0);
+					free(message);
+					free(msg);
 				}
 			}
-			strncpy(message, &buf[2], strlen(buf)-1);
-			printf("%s\n", message);
 			break;
 		case 'P':
 			c = dic_get(ts->dic, queueName, &error);
@@ -129,10 +156,11 @@ void * servicio(void *arg){
 			
 			if(error == -1){
 				//doesn't exist
-				send(s, "0", 2*sizeof(char), 0);
+				send(s, "-1", 2*sizeof(char), 0);
 			}else{
+				
 				strncpy(message, &buf[2], strlen(buf)-1);
-				printf("%s\n", message);
+				printf("Message: %s\n", message);
 
 				cola_push_back(c, message);
 
@@ -146,7 +174,7 @@ void * servicio(void *arg){
 		default:
 			break;
 		}
-		free(message);
+		//free(message);
 	}
 	close(s);
 	return NULL;
