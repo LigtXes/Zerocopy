@@ -45,9 +45,7 @@ int main(int argc, char *argv[]) {
                                 fd = creat(fich, 0644);
                                 free(fich);
 		            } while (fd == -1);
-                            printf("Tamano: %d\n", tam);
-                            printf("Mensaje %s", (char *)mensaje);
-                            write(fd, mensaje, 1024);
+                            write(fd, mensaje, tam);
                             close(fd);
                             free(mensaje);
                         }

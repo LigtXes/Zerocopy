@@ -69,25 +69,28 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     buf = (char *)malloc(strlen(cola+2*sizeof(char)));;
 
     getQueue(buf, cola);
-    mensaje = (void **)malloc(sizeof(void *));
 
     send(s, buf, strlen(buf), 0);
 
     free(buf);
     char response[TAM];
-    char * resp = (char *)malloc(TAM * sizeof(char));
 
     read(s, response, TAM);
     printf("Reçu: %s\n", response);
-    strncpy(resp, &response[2], strlen(response)-2);
+        char * resp = (char *)malloc((strlen(response)-1) * sizeof(char));
+    strncpy(resp, &response[2], strlen(response)-1);
+    resp[strlen(resp)] = '\0';
     printf("Reçu 2: %s\n", resp);
-    uint32_t i = (uint32_t)strlen(resp);
+    uint32_t i = (uint32_t) (strlen(resp) -1);
     *tam = i;
-    *mensaje = (char *)malloc(TAM*sizeof(char)); 
+    *mensaje = (char *)malloc(strlen(resp)); 
 
     //mensaje = &resp;
-    strcpy(mensaje, resp);
+    strcpy(*mensaje, resp);
+    //strcat(*mensaje, '\0');
+    //*mensaje = (void *)&resp;
     strncpy(resp, response, 2);
+    free(resp);
     return atoi(resp);
 
 }

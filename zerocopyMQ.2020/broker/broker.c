@@ -74,19 +74,19 @@ void * servicio(void *arg){
 		op = takeFirst[0];
 		queueName = takeFirst[1];
 
-		printf("Option chose: %c \n", op);
+	//	printf("Option chose: %c \n", op);
 
 		//char* queueName;
 		//strncat(queueName, buf+1, 1);
 
-		printf("Name of the queue: %c\n", queueName);
+	//	printf("Name of the queue: %c\n", queueName);
 		char* message = (char *)malloc(sizeof(char *));
 
 		int error;
 		switch (op)
 		{
 		case 'C':
-			dic_visit(ts->dic, imprimeDic);
+			//dic_visit(ts->dic, imprimeDic);
 
 			c = dic_get(ts->dic, queueName, &error);
 
@@ -134,7 +134,7 @@ void * servicio(void *arg){
 				}else{
 					printf("Se manda la cola\n\n");
 					char* msg = (char *)malloc(strlen(message+3*sizeof(char) ));
-					printf("Message to send %s", message);
+				//	printf("Message to send %s", message);
 					msg[0] = '1';
 					msg[1] = '0';
 					int i;
@@ -143,6 +143,7 @@ void * servicio(void *arg){
 					}
 					msg[i+3] = '\0';*/
 					strcat(msg, message);
+					msg[strlen(msg)] = '\0';
 					printf("Send: %s\n", msg);
 					send(s, msg, strlen(msg), 0);
 					free(message);
