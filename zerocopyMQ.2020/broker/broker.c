@@ -25,6 +25,7 @@ struct thread{
 	int s;
 };
 
+pthread_mutex_t count_mutex;
 
 #define TAM 1024
 
@@ -37,7 +38,7 @@ void imprimeQueue(void *v){
 }
 
 void imprimeDic(char *c, void *v){
-	printf("Name of the queue in main thread: %c\n", c);
+	printf("Name of the queue in main thread: %s\n", c);
 	cola_visit(v, imprimeQueue);
 }
 
@@ -54,46 +55,50 @@ void * servicio(void *arg){
 
 		int s, leido; 
 		char buf[TAM];
-		struct thread* ts= (struct thread*) arg;
+		struct thread* ts;
+		ts = (struct thread*) arg;
 
 		s = ts->s;
 
 		struct cola *c;
+		
 
 	while ((leido=read(s, buf, TAM))>0) {
 			
 
-		printf("Taille du buffer: %d\n", strlen(buf));
+		//printf("Taille du buffer: %s\n", strlen(buf));
 
 		char op;
-		char queueName;
+		char queue;
 
 		char takeFirst[3];
 
 		strncpy(takeFirst, buf, 2);
 		op = takeFirst[0];
-		queueName = takeFirst[1];
+		queue = takeFirst[1];
+
+		char* queueName = &queue;
 
 	//	printf("Option chose: %c \n", op);
 
 		//char* queueName;
 		//strncat(queueName, buf+1, 1);
+		printf("Name of the queue: %c\n", queue);
 
-	//	printf("Name of the queue: %c\n", queueName);
+		printf("Name of the queue: %s\n", &queueName);
 		char* message = (char *)malloc(sizeof(char *));
 
-		int error;
+		int error  = 0;
 		switch (op)
 		{
 		case 'C':
 			//dic_visit(ts->dic, imprimeDic);
 
-			c = dic_get(ts->dic, queueName, &error);
-
+			c = dic_get(ts->dic, &queue, &error);
 			if(error < 0){
 				//The dic doesn't exist
 				printf("The dic doesn't exist\n");
-				dic_put(ts->dic, queueName, (void *)cola_create());
+				dic_put(ts->dic, &queue, (void *)(struct cola *)cola_create);
 				send(s, "1", 2*sizeof(char), 0);
 			}else{
 				//Dic exist
@@ -137,8 +142,8 @@ void * servicio(void *arg){
 				//	printf("Message to send %s", message);
 					msg[0] = '1';
 					msg[1] = '0';
-					int i;
-					/*for(i = 0; i<strlen(message); i++){
+					/*int i;
+					for(i = 0; i<strlen(message); i++){
 						msg[i+2] = message[i];
 					}
 					msg[i+3] = '\0';*/
@@ -243,12 +248,15 @@ int main(int argc, char *argv[]){
 		}
 		close(s_conec);
 */
+		pthread_mutex_lock(&count_mutex);
+
 		ts->s = s_conec;
 		pthread_create(&thid,
 			&atrib_th,
 			servicio, 
 			(void *)(struct thread *)ts
 		);
+		pthread_mutex_unlock(&count_mutex);
 
 	
 

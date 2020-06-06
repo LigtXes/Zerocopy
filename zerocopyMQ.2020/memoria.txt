@@ -1,0 +1,14 @@
+Practica de Sistemas distribuidos zerocopy: 
+Resumen de la practica: 
+
+LibZerocopy: En esa "clase" hemos implementados las funciones que estaran del lado del servidor
+El objetivo de cada funcion es mandar le mensaje con el buen formato de tal manera que se pueda tratar en el broker. El formato que hemos elegido para mandor los mensajes es el siguiente: 
+Un caracter parar definir que accion se debe realizar, el caracter de la cola y por fin el mensaje (o nada si no se necesita). Cuando libZerocopy recibe una respuesta, trata el mensaje que le llega con el formato siguiente: 
+el return del broker (10 o -1) siguido del mensaje. Hemos elegido tener -1 o 10, para siempre tener 2 caracteres. Lo importante es poder distinguir un caso positivo y otro negativo. 
+Para mayor comprehension del codigo, las funciones de preparacion de los mensajes estan escritas en comun.c (algo que no deberia ser, ya que el broker no se sirve de estas funciones). Ademas de eso, se ha anadido una funcion para conectarse con el broker usando sockets. 
+
+Broker: Hemos decidido usar un broker que funciona con thread. Ese modo de funcionamiento permite estar siempre atento si llega nuevos mensajes. Ese modo de funcionamiento tambien se ha pensado en prevision de la fase 2, ya que los thread permitiran usar mutex de un manera mas facil (en caso de get bloqueante). 
+El broker crea un diccionario compartido con todos los threads. En ese diccionario se van a guardar todas las colas que mande el servidor. Cada cola puede ser identificada con su nombre simbolizado por un caracter.
+
+
+Problemas con el broker: Existe un problema con el broker. Una de las funciones del diccionario no funcionaba bien y se ha tenido que areglar el problema directamente en diccionario.c. Por lo tanto, es muy probable que el problema este debido a algo disfuncionamiento del broker. 

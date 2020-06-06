@@ -85,7 +85,7 @@ static int busca_entrada(const struct diccionario *d, const char *clave){
 
 //    printf("Taille de la clefs: %d\n", strcmp(&clave, &d->coleccion[0].clave));
 //    for (i=0; (i<d->nentradas && strcmp(clave, d->coleccion[i].clave)!=0); i++);
-      for (i=0; (i<d->nentradas && (clave != d->coleccion[i].clave)); i++);
+      for (i=0; (i<d->nentradas && strcmp(clave, d->coleccion[i].clave)!=0); i++);
     return (i==d->nentradas?-1:i);
 }
 static void itera_dic(const struct diccionario *d,  func_entrada_dic_t iter){
