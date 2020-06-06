@@ -52,30 +52,30 @@ void * servicio(void *arg){
 		printf("Taille du buffer: %d\n", strlen(buf));
 
 		char op;
-		char queueName;
+		char * queueName=(char*)malloc(sizeof(char));
 
 		char takeFirst[3];
 
 		strncpy(takeFirst, buf, 2);
 		op = takeFirst[0];
-		queueName = takeFirst[1];
+		queueName[0] = takeFirst[1];
 
 		printf("Option chose: %c \n", op);
 
 		//char* queueName;
 		//strncat(queueName, buf+1, 1);
 
-		printf("Name of the queue: %c\n", queueName);
+		printf("Name of the queue: %s\n", queueName);
 		char* message = (char *)malloc(sizeof(char));
 
 		int error;
 		switch (op)
 		{
 		case 'C':
-			dic_get(dic, queueName,&error);
+			dic_get(t->d, queueName,&error);
 			if(error < 0){
 				//The dic doesn't exist
-				dic_put(dic, queueName, (void *)cola_create());
+				dic_put(t->d, queueName, (void *)(struct cola*)cola_create());
 				send(s, "1", 2*sizeof(char), 0);
 			}else{
 				//Dic exist
@@ -88,19 +88,19 @@ void * servicio(void *arg){
 			}*/
 			break;
 		case 'D':
-			dic_get(dic, queueName, &error);
+			dic_get(t->d, queueName, &error);
 			
 			if(error == -1){
 				//The dic doesn't exist
 				send(s, "0", 2*sizeof(char), 0);
 			}else{
 				printf("Try to remove dic\n");
-				dic_remove_entry(dic, queueName, removeDic);
+				dic_remove_entry(t->d, queueName, removeDic);
 				send(s, "1", 2*sizeof(char), 0);
 			}
 			break;
 		case 'G':
-			c = dic_get(dic, queueName, &error);
+			c = dic_get(t->d, queueName, &error);
 			if(error == -1){
 				//Doesn't exist
 				send(s, "0", 2*sizeof(char), 0);
@@ -118,7 +118,7 @@ void * servicio(void *arg){
 			printf("%s\n", message);
 			break;
 		case 'P':
-			c = dic_get(dic, queueName, &error);
+			c = dic_get(t->d, queueName, &error);
 			
 			
 			if(error == -1){
@@ -130,8 +130,8 @@ void * servicio(void *arg){
 
 				cola_push_back(c, message);
 
-				dic_remove_entry(dic, queueName, NULL);
-				dic_put(dic, queueName, c);
+				dic_remove_entry(t->d, queueName, NULL);
+				dic_put(t->d, queueName, c);
 
 				send(s, "1", sizeof(char)*2, 0);
 			}
@@ -166,6 +166,7 @@ int main(int argc, char *argv[]){
     }
 
 	t->d = dic_create();
+	dic=dic_create();
 
 	pthread_attr_init(&atrib_th);
 	pthread_attr_setdetachstate(&atrib_th, PTHREAD_CREATE_DETACHED);
