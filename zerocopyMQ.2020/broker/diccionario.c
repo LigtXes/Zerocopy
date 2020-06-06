@@ -50,6 +50,7 @@ int dic_visit(const struct diccionario *d, func_entrada_dic_t visitar_entrada){
     return 0;
 }
 int dic_put(struct diccionario *d, const char *clave, const void *valor) {
+
     if (check_dic(d) || !clave || busca_entrada(d, clave)!=-1)  return -1;
     d->nentradas++;
     d->coleccion=realloc(d->coleccion, d->nentradas*sizeof(struct entrada));

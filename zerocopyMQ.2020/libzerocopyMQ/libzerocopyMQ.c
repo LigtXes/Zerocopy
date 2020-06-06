@@ -65,10 +65,12 @@ int put(const char *cola, const void *mensaje, uint32_t tam) {
 int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     int s = socketConnection();
 
+
     char* buf;
     buf = (char *)malloc(strlen(cola+2*sizeof(char)));;
 
     getQueue(buf, cola);
+
 
     send(s, buf, strlen(buf), 0);
 
@@ -76,6 +78,8 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     char response[TAM];
 
     read(s, response, TAM);
+        printf("Error\n");
+
         char * resp = (char *)malloc((strlen(response)-2) * sizeof(char));
     strncpy(resp, &response[2], strlen(response)-2);
     resp[strlen(resp)] = '\0';
