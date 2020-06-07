@@ -247,7 +247,10 @@ int get(const char *cola, void **mensaje, uint32_t *tam, bool blocking) {
     struct iovec iov[iovcnt];
 
     char c[2];
-    c[0] = 'D';
+    if(blocking)
+    c[0] = 'G';//c[0] = 'B';
+    else
+    c[0] = 'G';
     c[1] = '\0';
     iov[0].iov_base = c;
     iov[0].iov_len = sizeof(c);

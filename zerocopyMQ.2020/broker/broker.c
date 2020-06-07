@@ -167,21 +167,24 @@ void * servicio(void *arg){
 		{
 		case 'C':
 			//dic_visit(ts->dic, imprimeDic);
-
+			/*
 			c = dic_get(ts->dic, queueName, &error);
 
 			cola_visit(c, imprimeQueue);
 			cola_visit(dic_get(ts->dic,queueName, &error), imprimeQueue);	
+			*/
 			//cola_visit(c, imprimeQueue);
 			//cola_visit(dic_get(ts->dic,&queue,&error), imprimeQueue);
 
-			
+			dic_get(ts->dic,queueName,&error);
 			if(error < 0){
 				//The dic doesn't exist
+				/*
 				c = cola_create();
 				printf("The dic doesn't exist\n");
 				int put = dic_put(ts->dic, queueName, c);
-				
+				*/
+				dic_put(ts->dic,queueName,(void*)(struct cola*)cola_create());
 				send(s, "1", 2*sizeof(char), 0);
 				close(s);
 				return NULL;
@@ -199,11 +202,13 @@ void * servicio(void *arg){
 			}*/
 			break;
 		case 'D':
+			/*
 			c = dic_get(ts->dic, queueName, &error);
 			
 			cola_visit(c, imprimeQueue);
 			cola_visit(dic_get(ts->dic,queueName,&error), imprimeQueue);
-
+			*/
+			dic_get(ts->dic,queueName,&error);
 			if(error == -1){
 				//The dic doesn't exist
 				printf("The dic doesn't exist");
@@ -212,7 +217,9 @@ void * servicio(void *arg){
 				return NULL;
 			}else{
 				printf("Try to remove dic\n");
-				dic_remove_entry(ts->dic, queueName, removeDic);
+				//dic_remove_entry(ts->dic, queueName, removeDic);
+				free(dic_get(ts->dic,queueName,&error));
+				dic_remove_entry(ts->dic,queueName,NULL);
 				send(s, "1", 2*sizeof(char), 0);
 				close(s);
 				return NULL;
@@ -220,7 +227,7 @@ void * servicio(void *arg){
 			break;
 		case 'G':
 		printf("Check queue: %s\n", queueName);
-			c = dic_get(ts->dic, queueName, &error);
+			dic_get(ts->dic,queueName,&error);
 			if(error == -1){
 				//Doesn't exist
 				//send(s, "0", 2*sizeof(char), 0);
@@ -283,7 +290,9 @@ void * servicio(void *arg){
 					free(msg); 
 					*/
 
-					writev(s, iovResp, iovcnt);
+					while(writev(s, iovResp, iovcnt)>0){}
+				close(s);
+				return NULL;
 				}
 			}
 			break;
@@ -292,10 +301,8 @@ void * servicio(void *arg){
 				int tam_mensaje=atoi(realmente_tam_mensaje);
 				char * mensaje=(char*)malloc(sizeof(char)*tam_mensaje);
 				while((recv(s,mensaje,tam_mensaje,MSG_WAITALL))>0){
-					c = dic_get(ts->dic, queueName, &error);
+					dic_get(ts->dic, queueName, &error);
 				
-			cola_visit(c, imprimeQueue);
-			cola_visit(dic_get(ts->dic,queueName, &error), imprimeQueue);
 
 			if(error < -1){
 				//doesn't exist
@@ -352,8 +359,8 @@ int main(int argc, char *argv[]){
 
 	ts->dic = dic_create();
 
-	pthread_attr_init(&atrib_th);
-	pthread_attr_setdetachstate(&atrib_th, PTHREAD_CREATE_DETACHED);
+	//pthread_attr_init(&atrib_th);
+	//pthread_attr_setdetachstate(&atrib_th, PTHREAD_CREATE_DETACHED);
 	
 
     if ((s=socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
@@ -394,15 +401,12 @@ int main(int argc, char *argv[]){
 		}
 		close(s_conec);
 */
-		pthread_mutex_lock(&count_mutex);
+		//pthread_mutex_lock(&count_mutex);
 
 		ts->s = s_conec;
-		pthread_create(&thid,
-			&atrib_th,
-			servicio, 
-			(void *)(struct thread *)ts
-		);
-		pthread_mutex_unlock(&count_mutex);
+		servicio((void*)(struct thread*)ts);
+		//pthread_create(&thid,&atrib_th,servicio, (void *)(struct thread *)ts);
+		//pthread_mutex_unlock(&count_mutex);
 
 	
 
