@@ -24,11 +24,11 @@ int createMQ(const char *cola) {
     char response[4];
     read(s, response, 2*sizeof(char));
     char op = response[0];
-    printf("%c\n", op);
-    if(op = '0'){
+    //printf("%c\n", op);
+    if(op == '0'){
         return -1;
     }
-    return atoi(&op);
+    return atoi(response);
 }
     int destroyMQ(const char *cola){
     int s = socketConnection();
@@ -43,8 +43,8 @@ int createMQ(const char *cola) {
     char response[4];
     read(s, response, 2*sizeof(char));
     char op = response[0];
-    printf("%c\n", op);
-    if(op = '0'){
+    //printf("%c\n", op);
+    if(op == '0'){
         return -1;
     }
     return atoi(&op); 
