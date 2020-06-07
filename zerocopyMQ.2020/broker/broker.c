@@ -250,7 +250,7 @@ void * servicio(void *arg){
 					return NULL;
 			}else{
 				//@TODO
-				char *message =(char*) cola_pop_front(c, &error);
+				char *message =(char*) cola_pop_front(dic_get(ts->dic,queueName,&error), &error);
 				if(error == -1){
 					printf("Nada por leer \n\n");
 					//Nothing to popUP
