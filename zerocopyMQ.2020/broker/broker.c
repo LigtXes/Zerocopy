@@ -72,19 +72,25 @@ void * servicio(void *arg){
 		char op;
 		char queue;
 
-		char takeFirst[3];
+		char takeFirst[2];
 
 		strncpy(takeFirst, buf, 2);
 		op = takeFirst[0];
-		queue = takeFirst[1];
+		//queue[0] = buf[1];
+		queue = buf[1];
 
-		char* queueName = &queue;
+		dic_visit(ts->dic, imprimeDic);
+
+
+		char queueName[2];
+		strncpy(queueName, &buf[1], 1);
+		queueName[1] = '\0';
 
 		printf("Option chose: %c \n", op);
 
 		//char* queueName;
 		//strncat(queueName, buf+1, 1);
-		printf("Name of the queue: %c\n", queue);
+		printf("Name of the queue: %c\n", queueName[0]);
 
 		//printf("Name of the queue: %s\n", queueName);
 		char* message = (char *)malloc(sizeof(char *));
@@ -95,15 +101,19 @@ void * servicio(void *arg){
 		case 'C':
 			//dic_visit(ts->dic, imprimeDic);
 
-			c = dic_get(ts->dic, &queue, &error);
+			c = dic_get(ts->dic, queueName, &error);
+
+			cola_visit(c, imprimeQueue);
+			cola_visit(dic_get(ts->dic,queueName, &error), imprimeQueue);	
+			//cola_visit(c, imprimeQueue);
+			//cola_visit(dic_get(ts->dic,&queue,&error), imprimeQueue);
+
+			
 			if(error < 0){
 				//The dic doesn't exist
-				printf("The dic doesn't exist\n");
 				c = cola_create();
-				dic_put(ts->dic, &queue, (void*)(struct cola *)cola_create());
-							c = dic_get(ts->dic, &queue, &error);
-
-
+				printf("The dic doesn't exist\n");
+				int put = dic_put(ts->dic, queueName, c);
 				
 				send(s, "1", 2*sizeof(char), 0);
 			}else{
@@ -118,21 +128,24 @@ void * servicio(void *arg){
 			}*/
 			break;
 		case 'D':
-			c = dic_get(ts->dic, &queue, &error);
+			c = dic_get(ts->dic, queueName, &error);
 			
+			cola_visit(c, imprimeQueue);
+			cola_visit(dic_get(ts->dic,queueName,&error), imprimeQueue);
+
 			if(error == -1){
 				//The dic doesn't exist
 				printf("The dic doesn't exist");
 				send(s, "-1", 2*sizeof(char), 0);
 			}else{
 				printf("Try to remove dic\n");
-				dic_remove_entry(ts->dic, &queue, removeDic);
+				dic_remove_entry(ts->dic, queueName, removeDic);
 				send(s, "1", 2*sizeof(char), 0);
 			}
 			break;
 		case 'G':
 		printf("Check queue: %c\n", queue);
-			c = dic_get(ts->dic, &queue, &error);
+			c = dic_get(ts->dic, queueName, &error);
 			if(error == -1){
 				//Doesn't exist
 				send(s, "0", 2*sizeof(char), 0);
@@ -164,10 +177,11 @@ void * servicio(void *arg){
 			}
 			break;
 		case 'P':
-		printf("Check queue %c: ", queue);
-			c = dic_get(ts->dic, &queue, &error);
-			
-			
+			c = dic_get(ts->dic, queueName, &error);
+				
+			cola_visit(c, imprimeQueue);
+			cola_visit(dic_get(ts->dic,queueName, &error), imprimeQueue);
+
 			if(error < -1){
 				//doesn't exist
 				printf("Dic doesn't exist\n");
@@ -176,11 +190,10 @@ void * servicio(void *arg){
 				printf("OK\n");
 				strncpy(message, &buf[2], strlen(buf)-1);
 				printf("Message: %s\n", message);
-				printf("Cola %d\n", c);
-				cola_push_back(dic_get(ts->dic,&queue,&error), message);
+				cola_push_back(dic_get(ts->dic,queueName,&error), message);
 
-				dic_remove_entry(ts->dic, &queue, NULL);
-				dic_put(ts->dic, &queue, c);
+				//dic_remove_entry(ts->dic, &queue, NULL);
+				//dic_put(ts->dic, &queue, c);
 
 				send(s, "1", sizeof(char)*2, 0);
 			}
