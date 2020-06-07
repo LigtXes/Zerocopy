@@ -12,7 +12,7 @@
 
 #include <pthread.h>
 
-
+#define TAM 10
 
 #define MAGIC (('Q' << 24) + ('U' << 16) + ('E' << 8) + 'U')
 struct cola {
@@ -29,7 +29,7 @@ struct thread{
 
 pthread_mutex_t count_mutex;
 
-#define TAM 1024
+//#define TAM 1024
 
 
 
@@ -58,6 +58,9 @@ void * servicio(void *arg){
 		int s;
 		ssize_t leido; 
 		//char buf[TAM];
+		char realmente_tam_cola[TAM];
+		char realmente_tam_mensaje[TAM];
+
 		struct thread* ts;
 		ts = (struct thread*) arg;
 
@@ -97,6 +100,8 @@ void * servicio(void *arg){
 		iov[2].iov_base = soo; 
 		iov[2].iov_len = sizeof(soo);
 		*/
+		char foo[2];
+		/*
 	struct iovec iov[iovcnt];
 		char foo[2];
 		iov[0].iov_base = foo; 
@@ -106,23 +111,24 @@ void * servicio(void *arg){
 		iov[1].iov_base = boo; 
 		iov[1].iov_len = sizeof(boo);
 
-		char soo[TAM];
+		//char soo[TAM];
 		iov[2].iov_base = soo; 
 		iov[2].iov_len = sizeof(soo);
 
 	ssize_t recv = 0;
+	*/
 			//struct iovec iov[2];
 
 		//iov[0].iov_base = (char *)malloc(sizeof(char) * TAM);
-	while((leido=readv(s, iov, iovcnt))>recv){
+	while((leido=read(s, foo, 2))>0){
 		
 	//while ((leido=read(s, buf, TAM))>0) {
-		printf("Read: %d\n", leido);
+		//printf("Read: %d\n", leido);
 		
-		printf("Message in iov 0: %s\n", iov[0].iov_base);
-		printf("Message in iov 1: %s\n", (char *)iov[1].iov_base);
+		//printf("Message in iov 0: %s\n", iov[0].iov_base);
+		//printf("Message in iov 1: %s\n", (char *)iov[1].iov_base);
 
-		printf("Message in iov 2: %s\n", (char *)iov[2].iov_base);
+		//printf("Message in iov 2: %s\n", (char *)iov[2].iov_base);
 		//char buf[iov[0].iov_len];
 		//strcpy(buf, (char *)iov[0].iov_base);
 		
@@ -140,8 +146,11 @@ void * servicio(void *arg){
 
 		dic_visit(ts->dic, imprimeDic);
 
-		op = *(char *)iov[0].iov_base;
-		char* queueName = (char *)iov[1].iov_base;
+		op = foo[0];
+		while((read(s,realmente_tam_cola,TAM))>0){
+			int tam_cola=atoi(realmente_tam_cola);
+		char* queueName = (char *)malloc(sizeof(char)*atoi(realmente_tam_cola));
+		while((recv(s,queueName,tam_cola,MSG_WAITALL))>0){
 		//strcpy(queueName, (char *)iov[1].iov_base);
 		//queueName[1] = '\0';
 
@@ -151,7 +160,7 @@ void * servicio(void *arg){
 		printf("Name of the queue: %s\n", queueName);
 
 		//printf("Name of the queue: %s\n", queueName);
-		char* message = (char *)malloc(TAM * sizeof(char *));
+		//char* message = (char *)malloc(TAM * sizeof(char *));
 
 		int error = 0;
 		switch (op)
@@ -174,10 +183,14 @@ void * servicio(void *arg){
 				int put = dic_put(ts->dic, queueName, c);
 				
 				send(s, "1", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 			}else{
 				//Dic exist
 				printf("The dic already exist\n");
 				send(s, "-1", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 			}
 			/*if(dic_put(ts->dic, queueName, (void*)cola_create) <0){
 				send(s, "0", 2*sizeof(char), 0);
@@ -195,80 +208,91 @@ void * servicio(void *arg){
 				//The dic doesn't exist
 				printf("The dic doesn't exist");
 				send(s, "-1", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 			}else{
 				printf("Try to remove dic\n");
 				dic_remove_entry(ts->dic, queueName, removeDic);
 				send(s, "1", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 			}
 			break;
 		case 'G':
-		printf("Check queue: %c\n", queueName);
+		printf("Check queue: %s\n", queueName);
 			c = dic_get(ts->dic, queueName, &error);
 			if(error == -1){
 				//Doesn't exist
 				//send(s, "0", 2*sizeof(char), 0);
+				/*
 				iovcnt = 2; 
     				struct iovec iovResp[iovcnt];
-
-					char res[3];
-					res[0] = '-';
-					res[1] = '1';
-					res[2] = '\0';
 					iovResp[0].iov_base = res;
 					iovResp[0].iov_len = sizeof(res);
 
-					char message[TAM];
-					message[0] = '\0';
+					//char message[TAM];
+					//message[0] = '\0';
 					iovResp[1].iov_base = message;
 					iovResp[1].iov_len = sizeof(message);
 
-					writev(s, iovResp, iovcnt);
+					writev(s, iovResp, iovcnt);*/
+					printf("Nada por leer \n\n");
+					//Nothing to popUP
+					send(s, "-1", 2*sizeof(char), 0);
+					close(s);
+					return NULL;
 			}else{
 				//@TODO
-				message = cola_pop_front(c, &error);
+				char *message =(char*) cola_pop_front(c, &error);
 				if(error == -1){
 					printf("Nada por leer \n\n");
 					//Nothing to popUP
 					send(s, "-1", 2*sizeof(char), 0);
+					close(s);
+					return NULL;
 				}else{
 					printf("Se manda la cola\n\n");
+					sprintf(realmente_tam_mensaje,"%d",(int)strlen(message));
 
 					iovcnt = 2; 
     				struct iovec iovResp[iovcnt];
+					iovResp[0].iov_base = realmente_tam_mensaje;
+					iovResp[0].iov_len = TAM;
 
-					char res[3];
-					res[0] = '1';
-					res[1] = '\0';
-					iovResp[0].iov_base = res;
-					iovResp[0].iov_len = sizeof(res);
-
-					char mes[TAM];
-					strcpy(mes, message);
-					iovResp[1].iov_base = mes;
-					iovResp[1].iov_len = sizeof(mes);
+					iovResp[1].iov_base = message;
+					iovResp[1].iov_len = atoi(realmente_tam_mensaje);
 
 
 				/*	char* msg = (char *)malloc(strlen(message+3*sizeof(char) ));
 				//	printf("Message to send %s", message);
 					msg[0] = '1';
 					msg[1] = '0';
-					/*int i;
+					*/
+					/*
+					int i;
 					for(i = 0; i<strlen(message); i++){
 						msg[i+2] = message[i];
 					}
-					msg[i+3] = '\0';*/ /*
+					msg[i+3] = '\0';
+					*/ 
+					/*
 					strcat(msg, message);
 					msg[strlen(msg)] = '\0';
 					printf("Send: %s\n", msg);
 					send(s, msg, strlen(msg), 0); 
-					free(msg); */
+					free(msg); 
+					*/
 
 					writev(s, iovResp, iovcnt);
 				}
 			}
 			break;
 		case 'P':
-			c = dic_get(ts->dic, queueName, &error);
+			while((read(s,realmente_tam_mensaje,TAM))>0){
+				int tam_mensaje=atoi(realmente_tam_mensaje);
+				char * mensaje=(char*)malloc(sizeof(char)*tam_mensaje);
+				while((recv(s,mensaje,tam_mensaje,MSG_WAITALL))>0){
+					c = dic_get(ts->dic, queueName, &error);
 				
 			cola_visit(c, imprimeQueue);
 			cola_visit(dic_get(ts->dic,queueName, &error), imprimeQueue);
@@ -277,28 +301,31 @@ void * servicio(void *arg){
 				//doesn't exist
 				printf("Dic doesn't exist\n");
 				send(s, "-1", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 			}else{
 				
 				printf("OK\n");
-				strncpy(message, (char *)iov[2].iov_base, iov[2].iov_len);
-				printf("Message: %s\n", message);
-				cola_push_back(dic_get(ts->dic,queueName,&error), iov[2].iov_base);
+				printf("Message: %s\n", mensaje);
+				cola_push_back(dic_get(ts->dic,queueName,&error),mensaje);
+				send(s, "0", 2*sizeof(char), 0);
+				close(s);
+				return NULL;
 
-				//dic_remove_entry(ts->dic, &queue, NULL);
-				//dic_put(ts->dic, &queue, c);
-				printf("Error\n");
-
-				send(s, "1", sizeof(char)*2, 0);
+				}
 			}
 			
 			break;
 		default:
 			break;
 		}
+	}
+	}
 		//free(message);
 	}
-	 printf("Read: %d\n", leido);
-	printf("Message in iov: %s\n", iov[0].iov_base);
+	}
+	 printf("Read: %d\n",(int) leido);
+	//printf("Message in iov: %s\n", iov[0].iov_base);
 
 
 	close(s);
