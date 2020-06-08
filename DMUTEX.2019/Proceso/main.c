@@ -87,6 +87,7 @@ int puerto_udp;
 int cadenaEsNumero (char **cadena);
 int cadenaANumero (char **cadena);
 int scan (char **cadena);
+char* subString (const char* input, int offset, int len, char* dest);
 int main(int argc, char* argv[])
 {
   int l_scan;
@@ -94,9 +95,10 @@ int main(int argc, char* argv[])
   int port;
   char * port_cadena;
   char line[80];
-  char line2[80];
+  char l2[80];
+  char l5[80];
   char proc[80];
-  char l2[80],proc2[80];
+  char proc2[80];
   int s;
   int leido;
   struct sockaddr_in  init_s;
@@ -185,6 +187,7 @@ dict=dic_create();
 
         procesos[num_procesos]->port=port2;
         procesos[num_procesos]->socket=s2;
+        procesos[num_procesos]->p_id=num_procesos;
         
         strcpy(procesos[num_procesos]->nombre,proc);
         dic_put(dict,PROCESOS[num_procesos],procesos[num_procesos]);
@@ -231,13 +234,11 @@ dict=dic_create();
       mensaje=malloc(tam_mensaje);
       if((leido=read(s,mensaje,tam_mensaje))>0){
         i1=((int*)mensaje)[0];
-        printf("%s: RECEIVE(MSG,%s)\n",PROCESOS[proceso_ID],procesos[i1]->nombre);
+        printf("%s: RECEIVE(MSG,%s)\n",PROCESOS[proceso_ID],PROCESOS[i1]);
         
-        memcpy(LC2,mensaje,sizeof(int)*num_procesos);
         for(i=0;i<num_procesos;i++){
-          LC3[i]=LC2[i+1];
+          LC3[i]=((int*)mensaje)[(i+1)] ;
         }
-        free(LC2);
         for(i=0;i<num_procesos;i++){
           if(LC3[i] > LC[i])
             LC[i]=LC3[i];
@@ -253,7 +254,8 @@ dict=dic_create();
       LC[proceso_ID]++;
       printf("%s: TICK\n",PROCESOS[proceso_ID]);
     }
-    sscanf(line,"%s %s",l2,proc);
+    if(strlen(line)>10){
+    sscanf(line,"%s %s",l2,proc2);
     if(!strcmp(l2,"MESSAGETO")){
       l2[0]='\0';
       dic_get(dict,proc2,&error);
@@ -276,8 +278,9 @@ dict=dic_create();
         init_s2.sin_port=htons(p->port);
         init_s2.sin_family=PF_INET;
         sendto(s, mensaje, tam_mensaje, 0,(struct sockaddr *)&init_s2, var2);
-        printf("%s: SEND(MSG,%s)\n",PROCESOS[proceso_ID],proc);
+        printf("%s: SEND(MSG,%s)\n",PROCESOS[proceso_ID],PROCESOS[p->p_id]);
       }
+    }
     }
     }
 
@@ -453,4 +456,16 @@ int scan (char **cadena)
     }
   (*cadena)[i] = '\0';
   return i;
+}
+char* subString (const char* input, int offset, int len, char* dest)
+{
+  int input_len = strlen (input);
+
+  if (offset + len > input_len)
+  {
+     return NULL;
+  }
+
+  strncpy (dest, input + offset, len);
+  return dest;
 }
