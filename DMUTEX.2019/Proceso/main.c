@@ -360,7 +360,8 @@ static int busca_entrada(const struct diccionario *d, const char *clave){
     return (i==d->nentradas?-1:i);
 }
 static void itera_dic(const struct diccionario *d,  func_entrada_dic_t iter){
-    for (int i=0; i<d->nentradas; i++)
+    int i;
+    for (i=0; i<d->nentradas; i++)
         iter((char *)d->coleccion[i].clave, (void *)d->coleccion[i].valor);
 }
 static int check_dic(const struct diccionario *d){
