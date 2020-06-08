@@ -247,7 +247,6 @@ dict=dic_create();
         printf("%s: TICK\n",PROCESOS[proceso_ID]);
         LC[proceso_ID]++;
       }
-      printf("%s: TICK\n",PROCESOS[proceso_ID]);
 
       }
     
