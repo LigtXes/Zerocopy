@@ -90,13 +90,14 @@ int scan (char **cadena);
 char* subString (const char* input, int offset, int len, char* dest);
 int main(int argc, char* argv[])
 {
-  int l_scan;
+
+
+
   int n_de_scanner;
   int port;
   char * port_cadena;
   char line[80];
   char l2[80];
-  char l5[80];
   char proc[80];
   char proc2[80];
   int s;
@@ -122,7 +123,7 @@ int main(int argc, char* argv[])
 
   struct proceso * procesos[10];
   int error;
-  int i,j;
+  int i;
 
 /*---------------------------------------------------------------------------------*/
 
